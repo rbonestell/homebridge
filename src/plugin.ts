@@ -22,6 +22,7 @@ import { satisfies } from 'semver'
 
 import { Logger } from './logger.js'
 import { PluginManager } from './pluginManager.js'
+import { SecretStore } from './secretStore.js'
 import getVersion from './version.js'
 
 const log = Logger.internal
@@ -33,6 +34,7 @@ export class Plugin {
   private readonly pluginName: PluginName
   private readonly scope?: string // npm package scope
   private readonly pluginPath: string // like "/usr/local/lib/node_modules/homebridge-lockitron"
+  private secretStore?: SecretStore // used to store secrets for the plugin
   public disabled = false // mark the plugin as disabled
 
   // ------------------ package.json content ------------------
@@ -231,6 +233,9 @@ major incompatibility issues and thus is considered bad practice. Please inform 
       throw new Error('Tried to initialize a plugin which hasn\'t been loaded yet!')
     }
 
-    return this.pluginInitializer(api)
+    // Initialize SecretStore for plugin instance
+    this.secretStore = new SecretStore(api.user?.persistPath(), '', this.pluginName)
+
+    return this.pluginInitializer(api, this.secretStore)
   }
 }

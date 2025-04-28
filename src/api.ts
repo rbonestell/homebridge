@@ -2,6 +2,7 @@ import type { Controller, Service } from 'hap-nodejs'
 
 import type { AccessoryConfig, PlatformConfig } from './bridgeService.js'
 import type { Logging } from './logger.js'
+import type { SecretStore } from './secretStore.js'
 
 import { EventEmitter } from 'node:events'
 
@@ -46,7 +47,7 @@ export interface PluginInitializer {
    *
    * @param {API} api
    */
-  (api: API): void | Promise<void>
+  (api: API, secretStore: SecretStore): void | Promise<void>
 }
 
 export interface AccessoryPluginConstructor {
