@@ -28,6 +28,7 @@ import { ExternalPortService } from './externalPortService.js'
 import { IpcIncomingEvent, IpcOutgoingEvent, IpcService } from './ipcService.js'
 import { Logger } from './logger.js'
 import { PluginManager } from './pluginManager.js'
+import { SecretStore } from './secretStore.js'
 import { User } from './user.js'
 import { validMacAddress } from './util/mac.js'
 
@@ -456,7 +457,11 @@ export class Server {
         return
       }
 
-      const platform: PlatformPlugin = new constructor(logger, platformConfig, this.api)
+      // Initialize SecretStore for plugin instance
+      const pluginSecretStore = new SecretStore(User.persistPath(), this.config.bridge.pin, plugin.getPluginIdentifier())
+
+      // Initialize the platform plugin
+      const platform: PlatformPlugin = new constructor(logger, platformConfig, this.api, pluginSecretStore)
 
       if (HomebridgeAPI.isDynamicPlatformPlugin(platform)) {
         plugin.assignDynamicPlatform(platformIdentifier, platform)

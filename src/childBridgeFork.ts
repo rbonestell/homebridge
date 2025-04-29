@@ -29,6 +29,7 @@ import { ChildProcessMessageEventType } from './childBridgeService.js'
 import { ChildBridgeExternalPortService } from './externalPortService.js'
 import { Logger } from './logger.js'
 import { PluginManager } from './pluginManager.js'
+import { SecretStore } from './secretStore.js'
 import { User } from './user.js'
 import 'source-map-support/register.js'
 
@@ -151,8 +152,9 @@ export class ChildBridgeFork {
         const plugin = this.pluginManager.getPluginForPlatform(this.identifier)
         const displayName = config.name || plugin.getPluginIdentifier()
         const logger = Logger.withPrefix(displayName)
+        const pluginSecretStore = new SecretStore(User.persistPath(), this.bridgeConfig.pin, plugin.getPluginIdentifier())
         const constructor = plugin.getPlatformConstructor(this.identifier)
-        const platform: PlatformPlugin = new constructor(logger, config as PlatformConfig, this.api)
+        const platform: PlatformPlugin = new constructor(logger, config as PlatformConfig, this.api, pluginSecretStore)
 
         if (HomebridgeAPI.isDynamicPlatformPlugin(platform)) {
           plugin.assignDynamicPlatform(this.identifier, platform)
