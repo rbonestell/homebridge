@@ -1,10 +1,9 @@
 import { Buffer } from 'node:buffer'
-import { execFile, execFileSync } from 'node:child_process'
+import { execFileSync } from 'node:child_process'
 import { randomUUID } from 'node:crypto'
 import * as fs from 'node:fs'
 import * as os from 'node:os'
 import path from 'node:path/posix'
-import { promisify } from 'node:util'
 import { User } from './user.js'
 import { decryptAes, encryptAes, generateAesKey } from './util/crypto.js'
 

@@ -22,7 +22,6 @@ describe('secretStore', () => {
   })
 
   beforeEach(async () => {
-    // vi.resetAllMocks()
     vi.restoreAllMocks()
     vi.spyOn(store as any, 'saveSecretsToDisk').mockImplementation(() => {})
     vi.spyOn(store as any, 'loadSecretsFromDisk').mockImplementation(() => {})
