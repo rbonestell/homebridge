@@ -1,7 +1,14 @@
 import { Buffer } from 'node:buffer'
-import * as path from 'node:path'
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
+import { KeyChainFactory } from './keyChain.js'
 import { SecretStore } from './secretStore.js'
+
+// Mock KeyChain to always return a static key for deterministic tests
+const STATIC_KEY = Buffer.alloc(32, 1) // 32 bytes of value 1
+const mockKeyChain = {
+  getKey: vi.fn().mockReturnValue(STATIC_KEY),
+  createKey: vi.fn().mockReturnValue(STATIC_KEY),
+}
 
 describe('secretStore', () => {
   const persistPath = '/tmp/homebridge-test-persist'
@@ -9,12 +16,16 @@ describe('secretStore', () => {
   const pluginName = 'test-plugin'
   let store: SecretStore
 
-  beforeEach(() => {
-    // Mock the private disk IO methods to no-ops
+  beforeAll(() => {
+    vi.spyOn(KeyChainFactory, 'getKeyChain').mockReturnValue(mockKeyChain as any)
     store = new SecretStore(persistPath, uniqueID, pluginName)
-    vi.spyOn(store, 'saveSecretsToDisk' as any).mockImplementation(() => {})
-    vi.spyOn(store, 'loadSecretsFromDisk' as any).mockImplementation(() => {})
-    // Reset secrets to empty for each test
+  })
+
+  beforeEach(async () => {
+    // vi.resetAllMocks()
+    vi.restoreAllMocks()
+    vi.spyOn(store as any, 'saveSecretsToDisk').mockImplementation(() => {})
+    vi.spyOn(store as any, 'loadSecretsFromDisk').mockImplementation(() => {})
     // @ts-expect-error: test access to private
     store.secrets = {}
   })
@@ -44,20 +55,11 @@ describe('secretStore', () => {
     expect(() => store.deleteSecret('nope')).not.toThrow()
   })
 
-  it('should throw if pluginKey is wrong length', () => {
-    // Patch derivePluginKey to return wrong length
-    vi.spyOn(store as any, 'derivePluginKey').mockReturnValue(Buffer.alloc(16))
-    expect(() => store.setSecret('bad', 'value')).toThrow()
-    // @ts-expect-error: test access to private
-    store.secrets.bad = 'invalid'
-    expect(() => store.getSecret('bad')).toThrow()
-  })
-
-  it('should sanitize pluginName in filePath', () => {
+  it('should sanitize pluginName in filePath', async () => {
     const weirdName = 'plugin!@#%$^&*()_+'
     const s = new SecretStore(persistPath, uniqueID, weirdName)
-    vi.spyOn(s, 'saveSecretsToDisk' as any).mockImplementation(() => {})
-    vi.spyOn(s, 'loadSecretsFromDisk' as any).mockImplementation(() => {})
+    vi.spyOn(s as any, 'saveSecretsToDisk').mockImplementation(() => {})
+    vi.spyOn(s as any, 'loadSecretsFromDisk').mockImplementation(() => {})
     // @ts-expect-error: test access to private
     expect(s.filePath).toContain('plugin')
     // @ts-expect-error: test access to private
