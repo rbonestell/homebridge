@@ -2,13 +2,13 @@ import type { Controller, Service } from 'hap-nodejs'
 
 import type { AccessoryConfig, PlatformConfig } from './bridgeService.js'
 import type { Logging } from './logger.js'
+
 import type { SecretStore } from './secretStore.js'
 
 import { EventEmitter } from 'node:events'
-
 import hapNodeJs from 'hap-nodejs'
-import semver from 'semver'
 
+import semver from 'semver'
 import { Logger } from './logger.js'
 import { PlatformAccessory } from './platformAccessory.js'
 import { PluginManager } from './pluginManager.js'
@@ -47,7 +47,7 @@ export interface PluginInitializer {
    *
    * @param {API} api
    */
-  (api: API, secretStore: SecretStore): void | Promise<void>
+  (api: API): void | Promise<void>
 }
 
 export interface AccessoryPluginConstructor {
@@ -85,7 +85,7 @@ export interface AccessoryPlugin {
 }
 
 export interface PlatformPluginConstructor<Config extends PlatformConfig = PlatformConfig> {
-  new(logger: Logging, config: Config, api: API): DynamicPlatformPlugin | StaticPlatformPlugin | IndependentPlatformPlugin
+  new(logger: Logging, config: Config, api: API, secretStore?: SecretStore): DynamicPlatformPlugin | StaticPlatformPlugin | IndependentPlatformPlugin
 }
 
 export interface PlatformPlugin {} // not exported to the public in index.ts
