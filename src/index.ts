@@ -68,6 +68,11 @@ export { PlatformAccessoryEvent } from './platformAccessory.js'
 export type { PlatformAccessory, UnknownContext } from './platformAccessory.js'
 
 /**
+ * Export SecretStore for secure secret management
+ */
+export { SecretStore } from './secretStore.js'
+
+/**
  * Export server types
  */
 export type { HomebridgeOptions } from './server.js'

@@ -1,6 +1,6 @@
 import { Buffer } from 'node:buffer'
 import { execFileSync } from 'node:child_process'
-import { randomUUID } from 'node:crypto'
+import crypto, { randomUUID } from 'node:crypto'
 import * as fs from 'node:fs'
 import * as os from 'node:os'
 import path from 'node:path/posix'
@@ -248,7 +248,7 @@ class SystemKeyChain implements KeyChain {
     } else if (this.systemOS === 'linux') {
       return {
         command: 'secret-tool',
-        args: ['store', '--label', `Homebridge secrets key for ${keyName}`, 'service', keyName],
+        args: ['store', '--label', `Homebridge secrets key for ${keyName}`, 'service', keyName, 'account', 'homebridge'],
         input: value,
       }
     } else {
@@ -268,14 +268,16 @@ class SystemKeyChain implements KeyChain {
         args: ['find-generic-password', '-a', keyName, '-s', serviceName, '-w'],
       }
     } else if (this.systemOS === 'win32') {
+      // Use cmdkey to retrieve stored credentials on Windows
+      // This avoids the interactive Get-Credential prompt
       return {
         command: 'powershell.exe',
-        args: ['-Command', `(Get-Credential -UserName "${keyName}").Password`],
+        args: ['-Command', `$cred = cmdkey /list:"${keyName}" 2>$null; if ($LASTEXITCODE -eq 0) { (cmdkey /list:"${keyName}" | Select-String "Password:").Line.Split(":")[1].Trim() } else { throw "Credential not found" }`],
       }
     } else if (this.systemOS === 'linux') {
       return {
         command: 'secret-tool',
-        args: ['lookup', 'service', keyName, 'account', 'key'],
+        args: ['lookup', 'service', keyName, 'account', 'homebridge'],
       }
     } else {
       throw new Error(`Unsupported platform: ${this.systemOS}`)
@@ -299,10 +301,10 @@ class SystemKeyChain implements KeyChain {
         args: ['-Command', `cmdkey /delete:"${keyName}"`],
       }
     } else if (this.systemOS === 'linux') {
-      // On Linux, overwrite instead of true delete
+      // On Linux, clear the stored secret
       return {
         command: 'secret-tool',
-        args: ['clear', 'service', keyName],
+        args: ['clear', 'service', keyName, 'account', 'homebridge'],
       }
     } else {
       throw new Error(`Unsupported platform: ${this.systemOS}`)

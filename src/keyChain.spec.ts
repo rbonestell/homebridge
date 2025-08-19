@@ -64,4 +64,26 @@ describe('formatKeyName', () => {
       expect(formatKeyName('foo!@#bar')).toBe('homebridge_foo---bar')
     }
   })
+  it('handles multiple consecutive special characters', () => {
+    if (typeof formatKeyName === 'function') {
+      expect(formatKeyName('foo!@#$%^&*()bar')).toBe('homebridge_foo-bar')
+    }
+  })
+  it('handles edge cases', () => {
+    if (typeof formatKeyName === 'function') {
+      expect(formatKeyName('')).toBe('homebridge_')
+      expect(formatKeyName('normal-plugin')).toBe('homebridge_normal-plugin')
+      expect(formatKeyName('plugin.with.dots')).toBe('homebridge_plugin.with.dots')
+    }
+  })
+})
+
+describe('keyChainFactory integration', () => {
+  it('should return a keychain instance', () => {
+    const keychain = KeyChainFactory.getKeyChain('test-id')
+    expect(keychain).toBeDefined()
+    expect(typeof keychain.createKey).toBe('function')
+    expect(typeof keychain.getKey).toBe('function')
+    expect(typeof keychain.deleteKey).toBe('function')
+  })
 })
